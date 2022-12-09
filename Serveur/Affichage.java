@@ -1,6 +1,6 @@
-package affiche;
+package affichage;
 
-import java.util.Vector;
+import java.awt.BorderLayout;
 
 import javax.swing.JFrame;
 import javax.swing.JTable;
@@ -8,15 +8,16 @@ import javax.swing.JTable;
 import relation.Relation;
 
 public class Affichage extends JFrame {
+    public Affichage(){
 
-    public Affichage() {
     }
-
-    public Affichage(Relation relation) {
+    public Affichage(Relation relation){
+        Object[][] tableaux = relation.getTabl();
+        String[] entete = relation.getColonne();
+        JTable table = new JTable(tableaux,entete);
+        getContentPane().add(table.getTableHeader() , BorderLayout.NORTH);
+        getContentPane().add(table , BorderLayout.CENTER);
         this.setSize(500,500);
-        Vector<String> attr = relation.getAttribut();
-        Object val = relation.getVal();
-        JTable table = new JTable(attr,val);
-        getContentPane().add(table) ,border
-     }
+        this.setVisible(true);
+    }
 }

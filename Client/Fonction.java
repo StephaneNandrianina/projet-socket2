@@ -1,282 +1,576 @@
-package relation;
+package fonction;
 import relation.Relation;
-import java.util.Vector;
-
-import file.Fichiers;
-
-import java.lang.reflect.*;
-
-
-
+import java.io.*;
 public class Fonction {
-    Vector<Fichiers> arrayFile;
-
-    public Fonction(Vector<Fichiers> arrayFile) {
-        this.arrayFile = arrayFile;
-    }
-
-    //get set
-    public Vector<Fichiers> getarrayFile() {
-        return arrayFile;
-    }
-    public void setarrayFile(Vector<Fichiers> arrayFile) {
-        this.arrayFile = arrayFile;
-    }
-    //get set
-
-    //union 
-        //avoir le fichier d'une realtion qu'on a besoin
-        Fichiers vraiFichier(String nom)throws Exception{
-             Fichiers fichier=this.arrayFile.get(0);
-             for (int i = 0; i < arrayFile.size(); i++) {
-                if (this.arrayFile.get(i).lecture().get(0).equals(nom)) {
-                    fichier=this.arrayFile.get(i);
-                }
-             }
-             return fichier;   
+    public String somme_string(Object[] tableau){
+        String somme="";
+        for(int i=0 ; i<tableau.length ; i++){
+            if(i<tableau.length-1)
+            {
+                somme=somme+tableau[i]+",";
+            }else{
+                somme=somme+tableau[i];   
+            }
         }
-        //avoir le fichier d'une realtion qu'on a besoin    
+        return somme;
+    }   
+    public String table_to_string(Object[][] tableau){
+        String somme="";
+        for(int i=0; i<tableau.length ; i++){
+            if(i<tableau.length-1)
+            {
+                somme= somme+somme_string(tableau[i])+";";
+            } else{
+                 somme= somme+somme_string(tableau[i]);
+            }
+        }
+        return somme;
+    }
+    public Object[][] string_to_table(String ray){
+        String[] line= ray.split(";");
+        Object[][] resultat= new Object[line.length][];
+        for(int i=0 ; i<line.length ; i++){
+            resultat[i]= line[i].split(",");
+        }
+        return resultat;
+    }
+
+    public Object[] lire(String nom) throws Exception
+    {
+        File fichier= new File(nom+".txt");
+        Object[] tableau= new Object[3];
+        if(fichier.exists()){
+            BufferedReader br = br = new BufferedReader(new FileReader(fichier));
+            String ligne;
+            int i = 0 ; 
+            while ((ligne = br.readLine()) != null)
+            {
+                tableau[i]=ligne;
+                i++;
+            }
+            br.close();
+        } else{
+            throw new Exception("le table "+nom+" n'existe pas ");
+        }
+        return tableau;
         
-        public Vector<String> getVectorAttribut(Fichiers f1)throws Exception{
-            Vector<String> vect = new Vector<>();
-            String[] tabf= f1.getattributs();
-            for (int i = 0; i < tabf.length; i++) {
-                vect.add(tabf[i]);
-            }
-            return vect;
+    }
+
+     public String[] somme_tableau_string(Relation table1 , Relation table2) throws Exception{
+        String[] header_table1 =table1.getColonne();
+        String[] header_table2 =table2.getColonne();
+        String[] somme= new String[header_table1.length + header_table2.length]  ;
+        int j=0; 
+        for(int i=0; i<header_table1.length ; i++){
+            somme[j]=header_table1[i];
+            j++;
+        }
+        for(int i=0; i<header_table2.length ; i++){
+            somme[j]=header_table2[i];
+            j++;
         }
 
-        public Relation Union(String r1,String r2)throws Exception{
-                Fichiers fichier1=this.vraiFichier(r1);
-                Fichiers fichier2=this.vraiFichier(r2);
-                String union=r1+"U"+r2 ;
+        return somme;
+    }
 
-                Vector<String> vect=this.getVectorAttribut(fichier1);
+///-------------------------------------------------------------------------------------------------------------
 
-                String[][] valf1=fichier1.getValeurs();
-                String[][] valf2=fichier2.getValeurs();
-                Object[][] obj =new Object[(valf1.length+valf2.length)][vect.size()] ;
-                String[][] tabl=valf1;
-                
-                int k=0;
-                for (int i = 0; i < valf1.length; i++) {
-                    for (int j = 0; j < valf1[0].length; j++) {
-                        obj[i][j] = valf1[i][j];
-                    }
-                    k=i;
-                }
-
-                for (int i = 0; i < valf2.length; i++) {
-                    k++;
-                    for (int j = 0; j < valf2[0].length; j++) {
-                        obj[k][i]=valf2[i][j];
-                    }
-                }
-                Relation relation =new Relation(union, vect, valf2);
-                return relation;
-         }
-    //union 
-    
-
-    //projection
-         public int getIdAttribut(String colonne,Vector<String> vect) {
-            int indice=0;
-            for (int i = 0; i < vect.size(); i++) {
-                if (vect.get(i).equals(colonne)) {
-                    indice = i;
-                }
+    public boolean test_existence_colonne(Relation table1 , String nom_colonne) throws Exception{
+        String[] colonne = table1.getColonne();
+        boolean result=false;
+        int indice=0;
+        for(int i=0 ; i<colonne.length ; i++){
+            if(colonne[i].equals(nom_colonne)){
+                indice=i;
+                result=true;
             }
-            return indice;
-         }
+        }
+        return result;
 
-        public Relation projection(String colonne,String table)throws Exception{
-            Fichiers f = this.vraiFichier(table);
-            Vector<String> vect=this.getVectorAttribut(f);
+    }
 
-            if (colonne == "*") {
-                colonne=" ";
-                for (int i = 0; i < vect.size(); i++) {
-                    colonne=colonne+vect.get(i)+",";
-                }
+    public boolean verification_colonne(Relation table1 , Relation table2 )  throws Exception{      // on verifie si les 2 relations ont un colonne commun 
+        boolean resultat=false;
+       for(int i=0; i<table1.getColonne().length ; i++){
+            if(test_existence_colonne(table2  , table1.getColonne()[i])){
+                return true;
             }
-
-            String[] text =colonne.split(",");
-            String nom ="project" +table;
-
-            Vector<String>attribut = new Vector<String>();
-            int indice=0;
-            for (int i = 0; i < text.length; i++) {
-                indice = this.getIdAttribut(text[i], vect);
-                attribut.add(vect.get(indice));
-            } 
-
-            String[][] valeur=f.getValeurs();
-            Object[][] tableau = new Object[valeur.length][text.length];
-
-            indice=0;
-            for (int i = 0; i < text.length; i++) {
-                indice=getIdAttribut(text[i], vect);
-                for (int j = 0; j < valeur.length; j++) {
-                    tableau[i][j]=valeur[j][indice];
-                }
-            }
-            Relation project =new Relation(nom, attribut, tableau);
-            return project;
-        } 
-//projection
-
-    //intersection
-            //comparaison de 2 tables
-                public int compareTableObj(String[] tabl1, String[] tabl2){
-                    int compt=0;
-                    int val=0;
-                    for (int i = 0; i < tabl1.length; i++) {
-                        for (int j = 0; j < tabl2.length; j++) {
-                            if (tabl1[i]==tabl2[j]) {
-                                compt++ ;
-                            }
-                        }
-                    }
-                    if (compt==tabl1.length) {
-                        val=1;
-                    }
-                    return val;
-                }
-            //comparaison de 2 tables
-
-                //vector à tableau d' objet
-                    public Object[][] tablObjet(Vector<String[]> table , int taille){
-                        Object[][] tablObjects=new Object[table.size()][taille];
-                        for (int i = 0; i < table.size(); i++) {
-                            for (int j = 0; j < table.get(0).length; j++) {
-                                tablObjects[i][j] = table.get(i)[j];
-                            }
-                        }
-                        return tablObjects;
-                    }
-                //vector à tableau d' objet
-                    
-                public Relation intersection(String r1,String r2)throws Exception{
-                    Fichiers f1=this.vraiFichier(r1);
-                    Fichiers f2=this.vraiFichier(r2);
-
-                    String nom=r1+"intersection"+r2;
-                    Vector<String> vecto=this.getVectorAttribut(f1);
-                    String[][] valeurf1=f1.getValeurs();
-                    String[][] valeurf2=f2.getValeurs();
-
-                    int k=0;
-                    Vector<String[]> tableau=new Vector<String[]>();
-                    for (int i = 0; i < valeurf1.length; i++) {
-                        for (int j = 0; j < valeurf2.length; j++) {
-                            if (compareTableObj(valeurf1[i], valeurf2[j]) == 1) {
-                                tableau.add(valeurf1[i]);
-                            }
-                        }
-                    }
-                    
-                    Object[][] tableObjet=this.tablObjet(tableau, vecto.size());
-                    Relation relation =new Relation(nom, vecto, tableObjet);
-                    return relation;
-                }
-//intersection
-
-    
-    //difference
-      //comparaison des objets
-       public int compareObjet(Object[] objet1,Object[]objet2){
-            int vale=0;
-            for (int i = 0; i < objet1.length; i++) {
-                if ((String.valueOf(objet1[i])) == (String.valueOf(objet2[i]))) {
-                    vale=1;
-                }
-            }
-            return vale;
        }
-     //comparaison des objets
-     
-     public Relation difference(String r1 , String r2)throws Exception{
-            Fichiers f1=this.vraiFichier(r1);
-            Fichiers f2=this.vraiFichier(r2);
-            String nom = r1+"difference"+r2 ;
+        return resultat;
+    }
+    public String colonne_commun(Relation table1 , Relation table2) throws Exception {
+        String resultat = new String();
+        if( verification_colonne(table1 ,table2 )){
+            for(int i=0; i<table1.getColonne().length ; i++){
+                if(test_existence_colonne(table2  , table1.getColonne()[i])){
+                    resultat=table1.getColonne()[i];
+                    break;
+                }
+            } 
+        } else{ 
+            throw new Exception("il n'y a pas de colonne commun entre les deux relations");
+       }
+        return resultat;
 
-            Vector<String> vector = getVectorAttribut(f1);
-            String[][] valeur_f1 = f1.getValeurs();
-            String[][] valeur_f2 = f2.getValeurs();
+    }
 
-            Vector<Object[]> table = new Vector<Object[]>() ;
-            Relation union = Union(r1, r2);
-            Relation intersct = intersection(r1, r2);
 
-            Object[][] tableUnion = union.getVal();
-            Object[][] tableIntersct = intersct.getVal();
-
-            int compt=0;
-            for (int i = 0; i < tableUnion.length; i++) {
-                for (int j = 0; j < tableIntersct.length; j++) {
-                    if (this.compareObjet(tableUnion[i], tableIntersct[j])== 1) {
-                        compt++ ;
+    public boolean test_existence(Object[] ligne , Relation table2) throws Exception{
+        int header_table2=table2.getColonne().length;               // colonne de la relation table2
+        Object[][] valeur_table2 = table2.getTabl();             // tableau d'objet de table2
+        int compte=0;
+        if(ligne.length == header_table2 ){
+            for( int j=0; j<valeur_table2.length ; j++){
+                for(int i=0 ; i<header_table2 ; i++){
+                    if(ligne[i].equals(valeur_table2[j][i])){
+                        compte++;
                     }
                 } 
-                if (compt== tableIntersct.length) {
-                    table.add(tableUnion[i]);
+                if(compte == header_table2){
+                    return true;
                 }
-                
-                compt=0 ;
+                compte=0;
             }
-                Object[][] tab = new Object[table.size()][vector.size()];
-                for (int j = 0; j < tab.length; j++) {
-                    for (int k = 0; k < table.get(0).length; k++) {
-                        tab[j][k] = table.get(j)[k]; 
+        } else{
+            throw new  Exception(" les deux tables n'ont pas le mem nombre de colonne");
+        }
+        return false;
+    }
+    
+    public int[] indice_des_colonnes(String[] les_colonnes , Relation table1) throws Exception{
+        int[] resultat = new int[les_colonnes.length]; 
+        for(int i=0; i<resultat.length ; i++)
+        {
+            resultat[i]=numero_colonne(table1 , les_colonnes[i]);
+        }
+        return resultat;
+    }
+
+     
+
+
+//----------------utiliser dans union( String a , String b)
+    public Object[][] tableau_union(Relation table1 , Relation table2)throws Exception{  
+        Object[][] resultat;    
+        int ligne_table1=table1.getTabl().length;
+        int ligne_table2=table1.getTabl().length;
+        int colonne_table1=table1.getColonne().length;
+        int ligne=ligne_table1+ligne_table2;
+        if(table1.getColonne().length== table2.getColonne().length)
+        {
+             resultat= new Object[ligne ][ colonne_table1];
+             int j=0;
+            for(int i=0 ; i<ligne_table1 ; i++){
+                resultat[j]= table1.getTabl()[i];
+                j++;
+            }
+            for(int i=0 ; i<ligne_table2 ; i++){
+                resultat[j]= table2.getTabl()[i];
+                j++;
             }
 
+        } else{
+            throw new Exception("les deux tables n'ont pas le meme nombre de colonne");
+        }
+        return resultat;
+    }
+    public int nombre_resultat_diff(Relation table1, Relation table2) throws Exception
+    {
+        int compte=0;
+        Object[][] valeur_table1= table1.getTabl();
+        for(int i=0; i<valeur_table1.length ; i++ )
+        {
+            if(test_existence(valeur_table1[i], table2)==false){
+                System.out.println("sdsdsdsd");
+
+                compte++;
             }
-            Relation rel =new Relation(nom, vector, tab);
-            return rel ;
-     }
-   //difference  
-
-     //invention des tirets verticales  pour remplacer le tableau
-     public void CreateTable(Relation table){
-        Object[][] valeur = table.getVal();
-        Vector<String> attribut= table.getAttribut();
-        for (int i = 0; i < attribut.size(); i++) {
-            System.out.println(attribut.get(i)+" |");
         }
-        System.out.println("\n"); 
-        for (int i = 0; i < valeur.length; i++) {
-            for (int j = 0; j < valeur[0].length; j++) {
-                System.out.println(valeur[i][j]+" |");
+        return compte;
+    }
+
+
+    public int nombre_resultat_intersec(Relation table1, Relation table2) throws Exception
+    {
+        int compte=0;
+        Object[][] valeur_table1= table1.getTabl();
+        for(int i=0; i<valeur_table1.length ; i++ )
+        {
+            if(test_existence(valeur_table1[i], table2)==true){
+                compte++;
             }
-            System.out.println("\n");
         }
-     }
+        return compte;
+    }
 
-     //les requettes
-     public void Requette(String requette)throws Exception{
-        String[] texte = requette.split(" ");
-        
-        if (texte[0].equals("Union")) {
-            Relation rel = Union(texte[1], texte[3]) ;
-            CreateTable(rel);
+     public int numero_colonne(Relation table1,  String nom_colonne) throws Exception{
+        String[] colonne = table1.getColonne();
+        int indice=0;
+         if(test_existence_colonne(table1 , nom_colonne)==false){
+            throw new Exception("le colonne '"+nom_colonne+"' n'existe pas dans '"+table1.getNom()+"'");
         }
-        
-        if (texte[0].equals("projection")) {
-            Relation rel = projection(texte[1], texte[3]);
-            CreateTable(rel);
+        for(int i=0 ; i<colonne.length ; i++){
+            if(colonne[i].equals(nom_colonne)){
+                indice=i;
+            }
         }
+       
+        return indice;
+    }
 
-        if (texte[0].equals("intersection")) {
-            Relation rel = intersection(texte[1], texte[3]);
-            CreateTable(rel);
-        }
 
-        if (texte[0].equals("difference")) {
-            Relation rel = difference(texte[1], texte[3]);
-            CreateTable(rel);
+    public int nombre_resultat_condition(Relation table1 , String condition) throws Exception{
+        int compte =0; 
+        Object[][] valeur_table1= table1.getTabl();
+        String[] separer= condition.split("\\=");
+        int indice_colonne= numero_colonne(table1 , separer[0]);
+        for(int i=0; i<valeur_table1.length ; i++){
+            if( valeur_table1[i][indice_colonne].equals(separer[1])  ){
+                System.out.println(indice_colonne);
+                compte++;
+            }
         }
-     }
-   }
+        return compte;
+    }
 
+
+
+    public Object[][] tableau_difference(Relation table1 , Relation table2)throws Exception{
+        int compte=nombre_resultat_diff(table1, table2);
+        Object[][] resultat= new Object[compte][table1.getColonne().length];
+        Object[][] valeur_table1= table1.getTabl();
+        int j=0;
+        for(int i=0; i<valeur_table1.length ; i++ )
+        {
+            if(test_existence(valeur_table1[i], table2)==false){
+                System.out.println("1");
+                resultat[j] = valeur_table1[i];
+                j++;
+            }
+        }
+        return resultat;
+    }
+    public Object[][] tableau_intersection(Relation table1 , Relation table2) throws Exception{
+        int compte=nombre_resultat_intersec(table1, table2);
+        Object[][] resultat= new Object[compte][table1.getColonne().length];
+        Object[][] valeur_table1= table1.getTabl();
+        int j=0;
+        for(int i=0; i<compte ; i++ )
+        {
+            if(test_existence(valeur_table1[i], table2)){
+                resultat[j] = valeur_table1[i];
+                j++;
+            }
+        }
+        return resultat;
+    }
+    public Object[][] tableau_condition(Relation table1 , String condition) throws Exception{
+        int ligne=nombre_resultat_condition(table1 , condition);
+        String[] header=table1.getColonne(); 
+        Object[][] resultat= new Object[ligne][header.length];
+        Object[][] valeur_table1= table1.getTabl();
+        String[] separer= condition.split("\\=");
+        int indice_colonne= numero_colonne(table1 , separer[0]);
+        int j=0;
+        for(int i=0; i<valeur_table1.length ; i++){
+            if( valeur_table1[i][indice_colonne].equals(String.valueOf(separer[1])) ){
+                resultat[j] = valeur_table1[i];
+                j++;
+            }
+        }
+        return resultat;
+    }
+    public Object[][] tableau_pc( Relation table1 , Relation table2) throws Exception{   
+        Object[][] valeur_table1 = table1.getTabl();
+        Object[][] valeur_table2 = table2.getTabl();     
+        int ligne_table1=table1.getTabl().length;
+        int ligne_table2=table2.getTabl().length;
+        int colonne = table1.getColonne().length + table2.getColonne().length;
+        int ligne = ligne_table1 * ligne_table2;
+        Object[][] resultat= new Object[ligne][colonne];
+        int j=0; 
+        for(int i=0; i< valeur_table1.length ; i++){
+            for(int l=0 ; l<valeur_table2.length ; l++)
+            {
+                int m=0;
+                for( int k=0; k<table1.getColonne().length ; k++ ){
+                    resultat[j][m]=valeur_table1[i][k];
+                    m++;
+                }
+                for( int k=0; k<table2.getColonne().length ; k++ ){
+                    resultat[j][m]=valeur_table2[l][k];
+                    m++;
+                }
+                j++;
+            }
+        }
+        return resultat;
+    }
+    public int nombre_resultat_jointure(String a , String b , String condition) throws Exception{
+        int compte=0;
+        Relation table1 = selection(a);
+        Relation table2 = selection(b);
+        Relation produit_cart = produit_cartesienne(table1,table2);
+        int numero1= numero_colonne(produit_cart,condition.split("\\=")[0]);
+        int numero2= numero_colonne(produit_cart,condition.split("\\=")[1]); 
+        // System.out.println("           "+numero2+"             "+numero1);
+        Object[][] tab=produit_cart.getTabl();
+        for(int i=0; i<tab.length ; i++){
+            if(tab[i][numero1].equals(tab[i][numero2])){
+                compte++;
+            }
+        }
+        // System.out.println("========"+compte);
+        return compte;
+    }
+
+    public Object[][] tableau_jointure(String a , String b , String condition) throws Exception{
+        Relation table1 = selection(a);
+        Relation table2 = selection(b);
+        Relation produit_cart = produit_cartesienne(table1,table2);
+        int numero1= numero_colonne(produit_cart,condition.split("\\=")[0]);
+        int numero2= numero_colonne(produit_cart,condition.split("\\=")[1]);   
+        int ligne=nombre_resultat_jointure(a,b,condition);
+        Object[][] resultat = new Object[ligne][produit_cart.getColonne().length];
+        Object[][] tab=produit_cart.getTabl();
+        int j=0; 
+        for(int i=0; i<tab.length ; i++){
+            if(tab[i][numero1].equals(tab[i][numero2])){
+                resultat[j]=tab[i];
+                j++;
+            }
+        }
+        return resultat;
+    }
 
     
+
+
+// ------------------------------------------------------------------------------------------------------------------
+
+    public Relation selection(String nom )throws Exception{
+        Object[] fichier= lire(nom);
+
+        String nom_table= nom;
+        String[] colonne= String.valueOf(fichier[1]).split(",");
+        Object[][] valeur= string_to_table(String.valueOf(fichier[2]));
+        Relation relation = new Relation(nom_table , colonne , valeur);
+        return relation;
+    }
+
+
+    public Relation union(Relation table1 , Relation table2) throws Exception{
+        Relation resultat=new Relation("union", table1.getColonne() , tableau_union(table1, table2));
+        return resultat;
+    }
+
+    public Relation difference(Relation table1 , Relation table2  ) throws Exception{
+        Relation resultat=new Relation("difference", table1.getColonne() , tableau_difference(table1, table2));
+        return resultat;
+    }
+
+    public Relation intersection(Relation table1 , Relation table2  ) throws Exception{
+        Relation resultat=new Relation("intersection", table1.getColonne() , tableau_intersection(table1, table2));
+        return resultat;
+    }
+
+    public Relation condition(Relation table1, String condition ) throws Exception{
+        Relation resultat=new Relation("intersection", table1.getColonne() , tableau_condition(table1, condition));
+        return resultat;
+    }
+
+    public Relation projection(Relation table1 , String colonne) throws Exception
+    {
+        String[] header= colonne.split(",");
+        Object[][] valeur_table1 = table1.getTabl();
+        Object[][] resultat =new Object[valeur_table1.length][header.length];
+        int[] indice = indice_des_colonnes(header , table1);
+        int j=0; 
+        for(int i=0; i<valeur_table1.length ;i++){
+            for( j=0; j<indice.length ; j++){
+                resultat[i][j]=valeur_table1[i][indice[j]];
+            }
+        }
+        Relation result= new Relation("project",header , resultat );
+        return result;
+    }
+
+    public Relation produit_cartesienne( Relation table1 , Relation table2) throws Exception{
+        String[] header=somme_tableau_string(table1, table2);
+        Relation resultat= new Relation("produit cartesienne" , header , tableau_pc(table1 , table2));
+        return resultat;
+    }
+
+    public Relation jointure(Relation table1 , Relation table2 , String c) throws Exception{
+        String[] header=somme_tableau_string(table1,table2 );
+        Relation resultat= new Relation("produit cartesienne" , header , tableau_jointure(table1.getNom() , table2.getNom() ,c));
+        return resultat;
+    }
+    
+    public Relation division(Relation a , Relation b) throws Exception{   // table1: diviseur // table2: quotient  // table3: dividende
+        Relation table1= selection(a.getNom());
+        Relation table2= selection(b.getNom());   
+        Relation table3= selection("table3");
+        Relation projection_table1;            
+        Relation projection_table2;
+        if(test_existence_colonne( table1, table3.getColonne()[0])){
+            projection_table1=projection(table1 , table3.getColonne()[0]);
+            projection_table2=projection(table2 , table3.getColonne()[1]);
+        }else{
+            projection_table2=projection(table1 , table3.getColonne()[0]);
+            projection_table1=projection(table2 , table3.getColonne()[1]);
+        }
+        Relation produit_cart= produit_cartesienne(projection_table1 , projection_table2); 
+        Relation reste= difference(produit_cart , table3);
+        // Affichage affichage= new Affichage(produit_cart);
+        // Affichage affichage1= new Affichage(table3);
+        // Affichage affichage2= new Affichage(reste);
+
+
+//------------------ recupere la colonne commun entre les deux relations  reste et quotient
+        String colonne_comm1= colonne_commun(reste , table2);
+        Relation projection_reste= projection(reste , colonne_comm1);
+        Relation projection_quotient= projection(table2 , colonne_comm1);
+        Relation resultat= difference(projection_quotient , projection_reste);
+        return resultat;
+    }
+
+    public String verification_table(String table) throws Exception {
+        File fichier = new File(table+".txt");
+        String resultat =  new String();
+        if( fichier.exists()){
+            resultat= table;
+        }else{
+            throw new Exception("ce table n'existe pas");
+        }
+        return resultat;
+    }
+
+
+
+
+    public Relation requette_select( String req )throws Exception{
+        String[] resultat = req.split(" ");
+        Relation Select=new Relation();
+       
+        if( resultat.length==4)
+        {       if( resultat[1].equals("*") &&  resultat[2].equals("from")){
+                    Select= selection(verification_table(resultat[3]));
+                }
+                else if( resultat[1].equals("*")==false &&  resultat[2].equals("from") ){
+                    Relation table1= selection(verification_table(resultat[3]));
+                    Select= projection(table1 , resultat[1]);
+                }else{
+                    throw new Exception("verifier bien votre requette!");
+                }
+        }
+        if( resultat.length > 4 ){
+            if(resultat[4].equals("where") ){
+                Relation table1= selection(verification_table(resultat[3]));
+                Select=condition( table1, resultat[5]);
+            }else{
+                throw new Exception("verifier bien votre requette!");
+            }
+        }
+       return Select;
+
+    }
+
+    public Relation requette_union(String requeste) throws Exception{
+        String[] separer = requeste.split(" ");
+        Relation Union=new Relation();
+        
+        if(separer.length !=5){
+            throw new Exception("la requette doit etre de la forme 'union de nom_table1 a nom_table2'");   
+        }else{
+            Relation table1= selection( verification_table(separer[2]));
+            Relation table2= selection( verification_table(separer[4]));
+            Union= union(table1, table2) ;
+        }
+        return Union;
+    } 
+
+
+    public Relation requette_jointure(String requeste) throws Exception{
+        String[] separer = requeste.split(" ");
+        Relation Jointure = new Relation();
+        if(separer.length!=7)
+        {
+            throw new Exception("la requette doit etre de la forme 'jointure de nom_table1 a nom_table2 quand colonne1=colonne2'");   
+        }
+        else{
+            Relation table1= selection( verification_table(separer[2]));
+            Relation table2= selection( verification_table(separer[4]));
+            Jointure=jointure(table1, table2 , separer[6]) ;
+        }
+        return Jointure;
+    }
+
+
+    public Relation requette_difference(String requeste) throws Exception {
+     String[] separer = requeste.split(" ");
+        Relation Differrence=new Relation();
+        if(separer.length!=7)
+        {
+            throw new Exception("la requette doit etre de la forme 'diference entre nom_table1 et nom_table2 '");   
+        }
+        else{
+            Relation table1= selection( verification_table(separer[2]));
+            Relation table2= selection( verification_table(separer[4]));
+            Differrence= difference(table1, table2 ) ;
+        }   
+        return Differrence;
+    }
+
+    public Relation create_table( String requette) throws Exception{
+        String[] separer = requette.split(" ");
+        Relation Table=new Relation();
+        if(separer.length!=6)
+        {
+            throw new Exception("la requette doit etre de la forme 'creer table nomtable avec colonne: les_noms_colonnes'");   
+        }
+        else{
+            File fichier= new File(separer[2]+".txt");
+            if(fichier.exists()==false){
+            try(BufferedWriter stylo=new BufferedWriter(new FileWriter(fichier,true))) 
+            {
+                stylo.write(separer[2]);
+                stylo.newLine() ;
+                stylo.write(separer[5]);
+                Table=new Relation(separer[2],separer[5].split(",") , new Object[0][0]);
+                stylo.newLine();
+            } catch(IOException huhu){
+                huhu.printStackTrace();
+            }
+            }else{
+                throw new Exception("ce table existe deja");
+            }
+           
+        }   
+        return Table;
+    }
+
+
+    public Relation requette(String req) throws Exception{
+        String[] resultat = req.split(" ");
+        Relation fin=new Relation();
+        String a=resultat[1];
+        if(resultat[0].equals("select")){
+            fin=requette_select(req);
+        }
+        else if( resultat[0].equals("union") )
+        {
+            fin=requette_union(req);
+        }
+        else if(resultat[0].equals("jointure")){
+            fin=requette_jointure(req);
+        }
+        else if(resultat[0].equals("difference")){
+            fin=requette_difference(req);
+        } else if(resultat[0].equals("creer")){
+            fin=create_table(req);
+        }
+        return fin;
+    }
+
+}

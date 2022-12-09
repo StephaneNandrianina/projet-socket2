@@ -1,2 +1,2 @@
-javac -d . *.java   
-java main.Main
+javac -d . *.java
+java client.Client
