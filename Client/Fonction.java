@@ -351,10 +351,10 @@ public class Fonction {
     public Relation selection(String nom )throws Exception{
         Object[] fichier= lire(nom);
 
-        String nom_table= nom;
+        String table= nom;
         String[] colonne= String.valueOf(fichier[1]).split(",");
         Object[][] valeur= string_to_table(String.valueOf(fichier[2]));
-        Relation relation = new Relation(nom_table , colonne , valeur);
+        Relation relation = new Relation(table , colonne , valeur);
         return relation;
     }
 
@@ -481,7 +481,7 @@ public class Fonction {
         Relation Union=new Relation();
         
         if(separer.length !=5){
-            throw new Exception("la requette doit etre de la forme 'union de nom_table1 a nom_table2'");   
+            throw new Exception("la requette doit etre de la forme 'union de table1 a table2'");   
         }else{
             Relation table1= selection( verification_table(separer[2]));
             Relation table2= selection( verification_table(separer[4]));
@@ -496,7 +496,7 @@ public class Fonction {
         Relation Jointure = new Relation();
         if(separer.length!=7)
         {
-            throw new Exception("la requette doit etre de la forme 'jointure de nom_table1 a nom_table2 quand colonne1=colonne2'");   
+            throw new Exception("la requette doit etre de la forme 'jointure de table1 a table2 quand colonne1=colonne2'");   
         }
         else{
             Relation table1= selection( verification_table(separer[2]));
@@ -512,7 +512,7 @@ public class Fonction {
         Relation Differrence=new Relation();
         if(separer.length!=7)
         {
-            throw new Exception("la requette doit etre de la forme 'diference entre nom_table1 et nom_table2 '");   
+            throw new Exception("la requette doit etre de la forme 'diference entre table1 et table2 '");   
         }
         else{
             Relation table1= selection( verification_table(separer[2]));

@@ -9,6 +9,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
 
+import javax.management.relation.RelationException;
+
 import fonction.Fonction;
 import relation.Relation;
  
@@ -21,7 +23,8 @@ public class Serveur {
         ServerSocket s = new ServerSocket(port);
         System.out.println("Attente du client");
         Socket socketClient = s.accept();
-         System.out.println("Serveur a accepte la connexion du client");
+        System.out.println("Le client a reussi a se connecter ");
+        
 
          BufferedReader input = new BufferedReader(new InputStreamReader(socketClient.getInputStream()));
          Fonction fonction = new Fonction();
@@ -29,14 +32,13 @@ public class Serveur {
                 ObjectInputStream inp = new ObjectInputStream(socketClient.getInputStream());
                 String requette = (String) inp.readObject();
                 Relation relation = fonction.requette(requette);
-               // System.out.println(relation.getNom());
-                // Relation messageVenantClient = (Relation) inp.readObject();
-                // Relation nouveau_mess = messageVenantClient;
                 
                 ObjectOutputStream out = new ObjectOutputStream(socketClient.getOutputStream());
                 out.writeObject(relation);
 
-                
+                // System.out.println(relation.getNom());
+                // Relation messageVenantClient = (Relation) inp.readObject();
+                // Relation nouveau_mess = messageVenantClient;
                 // String requette = input.readLine();
                 // Relation relation = fonction.requette(requette);
                 // System.out.println(requette);
